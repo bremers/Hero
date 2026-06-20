@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+
+# ML models and data
+models/
+!models/.gitkeep
+data/
+!data/.gitkeep
+*.bin
+*.pt
+*.pth
+*.onnx
+*.gguf
+*.safetensors
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+*.ogg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+._*
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# ChromaDB local storage
+chroma_db/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Pinned deps (regenerate with pip freeze)
+requirements.lock
