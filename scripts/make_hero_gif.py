@@ -1,28 +1,42 @@
 """Generate a GIF of Hero pulsing with a speech balloon."""
 
 import math
+import os
 
 from PIL import Image, ImageDraw, ImageFont
 
-WIDTH, HEIGHT = 360, 280
+WIDTH, HEIGHT = 400, 280
 FRAMES = 40
 BODY_COLOR = (74, 144, 217)
 BODY_OUTLINE = (44, 95, 138)
 EYE_WHITE = (255, 255, 255)
 PUPIL = (26, 26, 46)
-BG = (13, 17, 23)  # GitHub dark theme background
+BG = (255, 255, 255)
 BALLOON_BG = (255, 255, 255)
 BALLOON_TEXT = (30, 30, 30)
-BALLOON_OUTLINE = (180, 180, 180)
+BALLOON_OUTLINE = (0, 0, 0)
 
 GREETING = "Hi, it's Hero!\nWanna hear a joke?"
 
 
-def draw_frame(tick: int) -> Image.Image:
+def _load_font() -> ImageFont.FreeTypeFont:
+    for path in [
+        "/System/Library/Fonts/Courier.dfont",
+        "/System/Library/Fonts/Supplemental/Courier New.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
+    ]:
+        try:
+            return ImageFont.truetype(path, 15)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
+def draw_frame(tick: int, font: ImageFont.FreeTypeFont) -> Image.Image:
     img = Image.new("RGB", (WIDTH, HEIGHT), BG)
     draw = ImageDraw.Draw(img)
 
-    cx, cy = 130, 170
+    cx, cy = 120, 170
     breath = 1.0 + 0.08 * math.sin(tick * (2 * math.pi / FRAMES))
     r = 60 * breath
 
@@ -74,50 +88,42 @@ def draw_frame(tick: int) -> Image.Image:
     )
 
     # Speech balloon
-    bx, by = 220, 20
-    bw, bh = 130, 65
+    bx, by = 210, 15
+    bw, bh = 175, 70
     border_r = 12
 
-    # Balloon body
     draw.rounded_rectangle(
         [bx, by, bx + bw, by + bh],
         radius=border_r,
         fill=BALLOON_BG,
         outline=BALLOON_OUTLINE,
-        width=1,
+        width=2,
     )
 
-    # Balloon tail (triangle pointing to Hero)
+    # Balloon tail
     tail_points = [(bx + 10, by + bh), (bx - 5, by + bh + 15), (bx + 30, by + bh)]
     draw.polygon(tail_points, fill=BALLOON_BG, outline=BALLOON_BG)
-    draw.line([tail_points[0], tail_points[1]], fill=BALLOON_OUTLINE, width=1)
-    draw.line([tail_points[1], tail_points[2]], fill=BALLOON_OUTLINE, width=1)
+    draw.line([tail_points[0], tail_points[1]], fill=BALLOON_OUTLINE, width=2)
+    draw.line([tail_points[1], tail_points[2]], fill=BALLOON_OUTLINE, width=2)
+    # Cover the outline inside the balloon where tail meets body
+    draw.line([(bx + 11, by + bh), (bx + 29, by + bh)], fill=BALLOON_BG, width=3)
 
     # Text
-    try:
-        font = ImageFont.truetype("/System/Library/Fonts/SFCompact.ttf", 14)
-    except OSError:
-        try:
-            font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 14)
-        except OSError:
-            font = ImageFont.load_default()
-
     lines = GREETING.split("\n")
     for i, line in enumerate(lines):
         bbox = draw.textbbox((0, 0), line, font=font)
         tw = bbox[2] - bbox[0]
         tx = bx + (bw - tw) // 2
-        ty = by + 12 + i * 22
+        ty = by + 14 + i * 22
         draw.text((tx, ty), line, fill=BALLOON_TEXT, font=font)
 
     return img
 
 
-frames = [draw_frame(t) for t in range(FRAMES)]
+font = _load_font()
+frames = [draw_frame(t, font) for t in range(FRAMES)]
 
 output = "assets/hero.gif"
-import os
-
 os.makedirs("assets", exist_ok=True)
 frames[0].save(
     output,
