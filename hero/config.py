@@ -8,4 +8,5 @@ class Settings(BaseModel):
     ollama_host: str = "http://localhost:11434"
     vad_threshold: float = 0.5
     tts_voice: str = "af_heart"
+    memory_path: str = "data/memories.json"
     chromadb_path: str = "data/chroma_db"

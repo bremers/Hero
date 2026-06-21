@@ -1,6 +1,7 @@
 """Mic capture stage with VAD-triggered start/stop."""
 
 import threading
+import time
 
 import numpy as np
 import sounddevice as sd
@@ -18,10 +19,14 @@ def record_utterance(
     silence_limit: float = 1.0,
     max_duration: float = 15.0,
     pre_speech_buffer: float = 0.3,
+    cooldown: float = 0.5,
 ) -> np.ndarray | None:
     """Block until speech is detected, then record until silence. Returns float32 mono audio."""
     vad = load_silero_vad()
     vad.reset_states()
+
+    # Discard mic input briefly so we don't pick up TTS playback
+    time.sleep(cooldown)
 
     chunks: list[np.ndarray] = []
     pre_chunks: list[np.ndarray] = []
@@ -74,7 +79,9 @@ def record_utterance(
         blocksize=CHUNK_SAMPLES,
         callback=callback,
     ):
-        done.wait()
+        # Poll with short timeout so Ctrl+C can interrupt
+        while not done.wait(timeout=0.1):
+            pass
 
     if not chunks:
         return None
