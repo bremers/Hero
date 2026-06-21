@@ -10,3 +10,6 @@ class Settings(BaseModel):
     tts_voice: str = "af_heart"
     memory_path: str = "data/memories.json"
     chromadb_path: str = "data/chroma_db"
+    camera_index: int = 1
+    face_detection_confidence: float = 0.5
+    facing_symmetry_threshold: float = 0.6
