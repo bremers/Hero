@@ -1,7 +1,7 @@
 # Hero
 
 <p align="center">
-  <img src="assets/hero.gif" alt="Hero — a friendly companion robot" width="360">
+  <img src="assets/hero.gif" alt="Hero, a friendly companion robot" width="360">
 </p>
 
 <p align="center">
