@@ -7,7 +7,11 @@ from pathlib import Path
 
 from loguru import logger
 
-REMEMBER_PATTERN = re.compile(r"<remember>(.*?)</remember>", re.DOTALL)
+REMEMBER_PATTERN = re.compile(
+    r"<\s*remember[\s=:>]*(.*?)<\s*/?\s*remember\s*>", re.DOTALL | re.IGNORECASE
+)
+# Catch any leftover tag-like fragments the primary pattern missed
+REMEMBER_CLEANUP = re.compile(r"<\s*/?\s*remember[^>]*>", re.IGNORECASE)
 
 
 class Memory:
@@ -44,7 +48,9 @@ class Memory:
                 logger.info(f"Remembered: {fact}")
         if matches:
             self._save()
-        return REMEMBER_PATTERN.sub("", llm_response).strip()
+        cleaned = REMEMBER_PATTERN.sub("", llm_response)
+        cleaned = REMEMBER_CLEANUP.sub("", cleaned)
+        return cleaned.strip()
 
     def to_prompt_block(self) -> str:
         """Format all memories for injection into the system prompt."""

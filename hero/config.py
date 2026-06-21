@@ -13,3 +13,4 @@ class Settings(BaseModel):
     camera_index: int = 1
     face_detection_confidence: float = 0.5
     facing_symmetry_threshold: float = 0.6
+    widget_size: int = 200

@@ -20,12 +20,12 @@ def record_utterance(
     max_duration: float = 15.0,
     pre_speech_buffer: float = 0.3,
     cooldown: float = 0.5,
+    cancel: threading.Event | None = None,
 ) -> np.ndarray | None:
     """Block until speech is detected, then record until silence. Returns float32 mono audio."""
     vad = load_silero_vad()
     vad.reset_states()
 
-    # Discard mic input briefly so we don't pick up TTS playback
     time.sleep(cooldown)
 
     chunks: list[np.ndarray] = []
@@ -43,6 +43,10 @@ def record_utterance(
         nonlocal speaking, silent_chunks
         if status:
             logger.warning(f"Audio status: {status}")
+
+        if cancel and cancel.is_set():
+            done.set()
+            raise sd.CallbackStop
 
         chunk = indata[:, 0].copy()
         tensor = torch.from_numpy(chunk)
@@ -79,9 +83,9 @@ def record_utterance(
         blocksize=CHUNK_SAMPLES,
         callback=callback,
     ):
-        # Poll with short timeout so Ctrl+C can interrupt
         while not done.wait(timeout=0.1):
-            pass
+            if cancel and cancel.is_set():
+                break
 
     if not chunks:
         return None
